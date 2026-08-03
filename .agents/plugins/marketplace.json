@@ -1,0 +1,14 @@
+{
+  "name": "hahaliu-workflow",
+  "owner": {
+    "name": "hahaliu1029"
+  },
+  "plugins": [
+    {
+      "name": "hahaliu-workflow",
+      "source": "./",
+      "description": "Native Codex workflow routing, authorization gates, Task Delta and verification discipline.",
+      "version": "0.1.0"
+    }
+  ]
+}

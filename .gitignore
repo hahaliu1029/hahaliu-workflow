@@ -1,0 +1,14 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+*.log
+.env
+.env.*
+results-*.jsonl
+manifest.json
+attestation.json
+transcripts/
+runs/
+tmp/
+.scratch/
+profile.local.md

@@ -1,0 +1,12 @@
+# Dependency versions the routing rules & eval expectations were last validated against.
+# Format: <dep>=<version>; optional <dep>.upstream=<version> is informational only.
+# Version drift (detected != tested) => WARN + list eval cases tagged with that dep.
+# Behavior drift (protocol change / skill disappearance / side-effect boundary) stays FAIL
+# in validate-workflow.sh section 4. After upgrading a dep: re-run affected evals, then
+# update the tested= line here.
+superpowers=6.2.0
+claude-code=2.1.220
+mattpocock=1.2.0
+codex-plugin=1.0.6
+gstack=1.60.1.0
+gstack.upstream=1.60.1.0

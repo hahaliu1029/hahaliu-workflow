@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hahaliu Workflow"
+  short_description: "为 Codex 选择工程主链、门禁、评审与验证路径"
+  default_prompt: "使用 $hahaliu-workflow 为当前工程任务定档、执行并用当次证据完成交付。"

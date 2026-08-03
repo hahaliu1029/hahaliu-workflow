@@ -1,0 +1,6 @@
+{
+  "name": "hahaliu-workflow",
+  "version": "0.1.0",
+  "description": "Select one engineering workflow, enforce authorization boundaries, isolate task changes, and require fresh verification evidence.",
+  "skills": "./codex/"
+}

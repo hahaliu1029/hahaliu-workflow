@@ -1,0 +1,16 @@
+{"id":"activation-typo","prompt":"把 README 第 8 行的 tehm 改成 them，不用做其他事。","expect":{"trigger":false,"path":"none","reason":"位置已知的纯拼写修正"}}
+{"id":"activation-single-skill","prompt":"使用 $skill-creator 创建一个 PDF 表单 skill。","expect":{"trigger":false,"path":"yield","reason":"用户已点名唯一执行 skill"}}
+{"id":"activation-project-skill","prompt":"这个仓库的 billing-auto-skill 已覆盖账单任务，修复账单重试。","expect":{"trigger":false,"path":"yield","reason":"项目 auto-skill 优先"}}
+{"id":"activation-choice","prompt":"这个任务应该用 gstack 还是 superpowers？帮我选一条然后开工。","expect":{"trigger":true,"path":"full","main_chain":"workflow-routing"}}
+{"id":"fast-doc","prompt":"更新这段已经确认的部署说明，命令和行为不变。","expect":{"trigger":true,"path":"fast","main_chain":"minimal-edit"}}
+{"id":"fast-config","prompt":"把本地示例配置里的注释顺序调整成和文档一致，不改变运行值。","expect":{"trigger":true,"path":"fast","main_chain":"minimal-edit"}}
+{"id":"focused-known-bug","prompt":"根因已定位为 normalizeName 丢了前导空格判断，补回归测试并修复。","expect":{"trigger":true,"path":"focused","main_chain":"test-driven-development"}}
+{"id":"focused-unknown-bug","prompt":"登录接口偶发 500，原因未知，请定位并修复。","expect":{"trigger":true,"path":"focused","main_chain":"systematic-debugging"}}
+{"id":"full-schema","prompt":"给事件 wire format 增加 tenantId，并兼容旧客户端。","expect":{"trigger":true,"path":"full","main_chain":"contract-first"}}
+{"id":"full-cross-layer","prompt":"新增一个跨 API、数据库和前端的审批能力，需求还只有一句话。","expect":{"trigger":true,"path":"full","main_chain":"clarify-plan-slices"}}
+{"id":"full-product-choice","prompt":"客户提出三种权限继承语义，帮我选方案并实现。","expect":{"trigger":true,"path":"full","main_chain":"brainstorming"}}
+{"id":"full-worth-doing","prompt":"先判断这个 AI 自动摘要功能是否值得做，证据足够再决定是否开发。","expect":{"trigger":true,"path":"full","main_chain":"problem-validation"}}
+{"id":"review-code","prompt":"只审计这段鉴权代码，不要修改任何文件。","expect":{"trigger":true,"path":"review","main_chain":"read-only-review"}}
+{"id":"review-page","prompt":"只检查本地页面交互是否可用，用真实 Chrome，不修问题。","expect":{"trigger":true,"path":"review","main_chain":"chrome-qa"}}
+{"id":"review-release","prompt":"做一次发版准备度检查，但不要 commit、push 或部署。","expect":{"trigger":true,"path":"review","main_chain":"read-only-preflight"}}
+{"id":"goal-feature","prompt":"/goal 完成这个跨层功能，持续推进到验收通过，但不要提交 Git。","expect":{"trigger":true,"path":"full","main_chain":"goal-plan-slices"}}
