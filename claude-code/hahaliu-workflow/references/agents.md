@@ -7,9 +7,9 @@
 | 场景 | 派谁 | 模型档 | 说明 |
 |---|---|---|---|
 | 只读侦察、多文件扫描、定位代码 | Explore | sonnet | 只要结论不要文件转储;声明广度(medium / very thorough) |
-| 实现一个独立 ticket/切片 | general-purpose | 继承主模型 | 历史主力(96% 的派发);prompt 按下面检查单写 |
+| 实现一个独立 ticket/切片 | general-purpose | 继承主模型 | prompt 按下面检查单写 |
 | 深度规划/架构方案 | 主上下文自己做,或 ecc:planner | 最强档 | 规划是高杠杆决策,不下放低档 |
-| 代码评审镜头 | ecc:code-reviewer 或对应语言 reviewer(python/react/typescript…) | 最强档 | 它们要求 >80% 置信度才报、零发现是有效结论 |
+| 代码评审镜头 | ecc:code-reviewer 或对应语言 reviewer(python/react/typescript…) | 最强档 | 它们要求 >80% 置信度才报、零发现是有效结论;派发有下限——单文件小 delta 的单轴 Standards 评审留主上下文走查,不派子代理,多轴并行/高风险镜头/大 delta 才派上下文隔离子代理 |
 | 安全审查 | ecc:security-reviewer | 最强档 | 触及认证/密钥/注入面/用户输入时 |
 | 构建/类型报错修复 | ecc:build-error-resolver(或语言版) | sonnet | 只修构建,最小 diff,不做架构性改动 |
 | 架构咨询/对抗评审/第二意见 | `scripts/codex-consult.sh "<prompt>"`(长问题用 `@文件`;协议见 routing.md) | wrapper 内部固定 xhigh | Codex CLI 可用时的可选通道；调用方不加任何 flag、不手写 `codex exec`;只读,结论经验证后才采信 |

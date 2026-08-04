@@ -5,8 +5,9 @@
 # in validate-workflow.sh section 4. After upgrading a dep: re-run affected evals, then
 # update the tested= line here.
 superpowers=6.2.0
-claude-code=2.1.220
+claude-code=2.1.221
 mattpocock=1.2.0
 codex-plugin=1.0.6
 gstack=1.60.1.0
 gstack.upstream=1.60.1.0
+ecc=2.1.0

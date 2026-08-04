@@ -12,6 +12,8 @@ scripts/validate-workflow.sh --selftest
 
 `quick_validate.py` 检查 Codex skill 基本格式。自带 validator 额外检查必需 references、Codex 平台术语、Git 授权措辞、UI metadata、route cases 和脚本自测。两者都只证明静态结构与确定性脚本，不证明模型会在真实任务中正确触发、让位、选路或守住权限。
 
+自带 validator 的结构档与 selftest 都要求安装目录不存在 `scripts/__pycache__`；既存残留同样 FAIL，避免陈旧字节码在源码校验前被静默 import。校验过程设置 `sys.dont_write_bytecode`，也不得自己向安装目录写入缓存。
+
 ## 前向测试
 
 重大修订后使用 fresh-context 子智能体。Prompt 写成真实请求：

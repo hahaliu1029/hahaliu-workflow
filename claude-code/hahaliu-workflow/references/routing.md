@@ -143,10 +143,10 @@ grill(任一变体) → 共同理解回执 → 用户明确确认(短确认即�
 
 ## MP 流程技能的加载机制(可选集成,易踩坑)
 
-MP 带 `disable-model-invocation: true` 的流程技能分布在两个目录:
+MP 带 `disable-model-invocation: true` 的流程技能分布在 engineering 与 productivity 两个目录。下面只列本 skill 路由引用、结构档盯漂移的技能——不是全量清单,MP 升级会新增同标记技能(如 productivity 的 teach、writing-great-skills),成员以缓存目录实测为准:
 
-- engineering 9 个: ask-matt / grill-with-docs / to-spec / to-tickets / implement / triage / wayfinder / improve-codebase-architecture / setup-matt-pocock-skills
-- productivity 2 个: grill-me / handoff
+- engineering: ask-matt / grill-with-docs / to-spec / to-tickets / implement / triage / wayfinder / improve-codebase-architecture / setup-matt-pocock-skills
+- productivity: grill-me / handoff
 
 这些技能不会自动触发,子代理的技能清单里可能根本看不到。**清单里没有 ≠ 不存在**。仅在插件已安装且路径可读时显式读取并应用其规则；常见缓存路径是 `~/.claude/plugins/cache/mattpocock/mattpocock-skills/*/skills/{engineering,productivity}/<name>/SKILL.md`。grilling(productivity)通常可直接用 Skill 工具调用。
 - 绝不臆造同名流程冒充已调用;确实读不到就如实报告缺口,再用等效替代并说明是替代路径。

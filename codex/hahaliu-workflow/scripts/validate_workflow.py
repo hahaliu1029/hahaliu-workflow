@@ -16,7 +16,15 @@ import tempfile
 from pathlib import Path
 
 sys.dont_write_bytecode = True
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+SCRIPT_DIR = Path(__file__).resolve().parent
+if (SCRIPT_DIR / "__pycache__").exists():
+    print(
+        "FAIL: scripts/__pycache__ present in install dir "
+        "(stale bytecode may be imported before validation)",
+        file=sys.stderr,
+    )
+    raise SystemExit(1)
+sys.path.insert(0, str(SCRIPT_DIR))
 
 import git_write_classifier as git_classifier
 
@@ -127,6 +135,10 @@ def validate_common(root: Path, report: Report) -> tuple[str, str, dict[str, str
 
     markdown_files = sorted(root.rglob("*.md"))
     combined = "\n".join(read_text(path, report) for path in markdown_files)
+    report.check(
+        not (root / "scripts" / "__pycache__").exists(),
+        "scripts/__pycache__ is absent",
+    )
     for term in sorted(FORBIDDEN_CLAUDE_TERMS):
         report.check(term not in combined, f"Codex skill does not depend on Claude-only term: {term}")
 
@@ -256,13 +268,24 @@ def selftest(root: Path) -> int:
         if validate(duplicate_case, emit=False).failed == 0:
             failures.append("validator accepted a duplicate route-case id")
 
+        stale_bytecode = Path(temp) / "stale-bytecode" / "hahaliu-workflow"
+        shutil.copytree(base, stale_bytecode)
+        cache_dir = stale_bytecode / "scripts" / "__pycache__"
+        cache_dir.mkdir()
+        (cache_dir / "git_write_classifier.cpython-312.pyc").write_bytes(b"stale")
+        if validate(stale_bytecode, emit=False).failed == 0:
+            failures.append("validator accepted a pre-existing scripts/__pycache__")
+
+    if (root / "scripts" / "__pycache__").exists():
+        failures.append("selftest wrote scripts/__pycache__ into the skill directory")
+
     if failures:
         for failure in failures:
             print(f"  FAIL  {failure}")
         print(f"SELFTEST: FAIL={len(failures)}")
         return 1
     print(f"  PASS  classifier cases={len(classifier_cases)}")
-    print("  PASS  valid, TODO, missing-reference and duplicate-case fixtures")
+    print("  PASS  valid, TODO, missing-reference, duplicate-case and stale-bytecode fixtures")
     print("SELFTEST: PASS")
     return 0
 

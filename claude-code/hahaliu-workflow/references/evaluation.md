@@ -1,6 +1,6 @@
 # 评测体系(自检、三阶段冷测、轨迹审计与 runner)
 
-改本 skill 或跑评测前读本文件。工具不修改安装目录、也不修改被测仓库,只写显式指定的输出目录(runner 的运行目录、finalizer 的定稿文件);安装目录连字节码都不写(`PYTHONDONTWRITEBYTECODE` 固化,selftest 断言无 `__pycache__`)。
+改本 skill 或跑评测前读本文件。工具不修改安装目录、也不修改被测仓库,只写显式指定的输出目录(runner 的运行目录、finalizer 的定稿文件);安装目录连字节码都不写(`PYTHONDONTWRITEBYTECODE` 固化;结构档与 selftest 均断言安装目录不存在 `__pycache__`——既存残留同样 FAIL,防止陈旧字节码被静默 import)。
 
 ## 命令一览
 
@@ -17,7 +17,7 @@ scripts/finalize-results.py <运行目录> --grader <姓名>                 # g
 
 ## 结构档
 
-核心文件、可选依赖探测、disable-model-invocation 漂移、依赖版本漂移(detected vs `evals/tested-versions.txt`,缺失或版本漂移只 WARN 并列出待复跑 eval;已安装依赖的行为漂移才 FAIL)与项目 auto-skill 结构。项目段的 auto 冲突扫描是关键词级 lint;Phase C-joint 联读审计属派发型深检,结果须经 `--score-overlay` 评分才算执行过。
+核心文件、可选依赖探测、disable-model-invocation 漂移、依赖版本漂移(detected vs `evals/tested-versions.txt`,缺失或版本漂移只 WARN 并列出待复跑 eval;已安装依赖的行为漂移才 FAIL)与项目 auto-skill 结构。结构档输出依赖宿主可选组件: PyYAML 缺失时 quick_validate 跳过、frontmatter 降级为 heuristic lint 并 WARN(PASS 计数随之变化)——跨宿主对比结果前先对齐可选依赖。项目段的 auto 冲突扫描是关键词级 lint;Phase C-joint 联读审计属派发型深检,结果须经 `--score-overlay` 评分才算执行过。
 
 ## 行为档: 三阶段冷测(`evals/route-cases.jsonl`)
 

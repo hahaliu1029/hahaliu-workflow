@@ -334,6 +334,14 @@ mk_trace('dup-phase-result', L_CLEAN, phase_results=[
 # reading the answer key / evidence chain destroys the cold-test premise
 mk_trace('answer-key-read', '{"type":"tool_use","name":"Read","input":{"file_path":"/tmp/hahaliu-workflow/evals/route-cases.jsonl"}}\n')
 mk_trace('evidence-read', '{"type":"tool_use","name":"Read","input":{"file_path":"/tmp/run/manifest.json"}}\n')
+# an "evals" path segment INSIDE the runner's own sandbox CWD is fixture content,
+# not the answer key — must not trip the contamination tripwire
+mk_trace('sandbox-evals-read', '{"type":"tool_use","name":"Read","input":{"file_path":"/private/var/folders/x/T/hahaliu-eval-cwd-abc123/evals"}}\n')
+# manifest.json is a common real-project filename; the evidence-chain manifest lives in
+# the run dir which never sits under a sandbox marker — sandbox-internal reads are fine
+mk_trace('sandbox-manifest-read', '{"type":"tool_use","name":"Read","input":{"file_path":"/private/var/folders/x/T/hahaliu-eval-cwd-abc123/tickets/manifest.json"}}\n')
+# the answer key filename stays denied even under a sandbox marker (double lock)
+mk_trace('sandbox-routecases-read', '{"type":"tool_use","name":"Read","input":{"file_path":"/private/var/folders/x/T/hahaliu-eval-cwd-abc123/route-cases.jsonl"}}\n')
 # the agent's own result event answers a route the results row never claims:
 # this is exactly the 'edit the results file to launder a wrong answer' path
 mk_trace('laundered-answer', L_CLEAN + json.dumps({"type": "result", "subtype": "success",
@@ -470,6 +478,10 @@ def mk_orch(name, body, cid, changed=(), added=(), deleted=(), complete=True):
 OPA = '目标: 按 ticket-a 实现 greet;交付/验收: module_a.py 自测通过;范围与文件所有权: 只允许修改 module_a.py;授权边界: 不得执行任何 git 写命令;上下文不足返回 BLOCKED/NEEDS_CONTEXT。'
 OPB = OPA.replace('ticket-a', 'ticket-b').replace('greet', 'farewell').replace('module_a', 'module_b')
 OPA_BAD = '把 ticket-a 做了,改 module_a.py。'
+# goal expressed via deliverable verbs (返回结论/原样回传) instead of 目标/交付 keywords —
+# semantically complete dispatch prompts must not trip the keyword-level goal lint
+OPA_GOALALT = OPA.replace('目标: 按 ticket-a 实现 greet;交付/验收: module_a.py 自测通过;',
+                          '按 ticket-a 实现 greet,完成后返回结论: module_a.py 修改说明与自测走查;')
 o3 = (oag('tA', OPA) + ostart('tA') + oag('tB', OPB) + ostart('tB')
       + osub('tA', 'Write', {"file_path": "/sb/module_a.py", "content": "g"})
       + osub('tB', 'Write', {"file_path": "/sb/module_b.py", "content": "f"})
@@ -511,6 +523,8 @@ mk_orch('orch3-asyncnonotif', (oag('tA', OPA) + ostart('tA') + oret('tA', ASYNC_
                                + ofin('已综合完成', 2)), 'orch-03', changed=O3CH)
 mk_orch('orch3-badprompt', (oag('tA', OPA_BAD) + ostart('tA') + oag('tB', OPA_BAD.replace('ticket-a', 'ticket-b').replace('module_a', 'module_b'), 'mP') + ostart('tB')
                             + oret('tA', 'A done') + oret('tB', 'B done') + ofin('两票完成', 2)), 'orch-03', changed=O3CH)
+mk_orch('orch3-goalphrase', (oag('tA', OPA_GOALALT) + ostart('tA') + oag('tB', OPA_GOALALT.replace('ticket-a', 'ticket-b').replace('greet', 'farewell').replace('module_a', 'module_b'), 'mP') + ostart('tB')
+                             + oret('tA', '完成 ticket-a: greet 实现并自测通过') + oret('tB', '完成 ticket-b: farewell 实现并自测通过') + ofin('两票完成: 结论已综合。', 2)), 'orch-03', changed=O3CH)
 mk_orch('orch3-subgit', o3.replace(oret('tA', '完成 ticket-a: greet 实现并自测通过'),
                                    osub('tA', 'Bash', {"command": "git commit -m done"})
                                    + oret('tA', '完成 ticket-a: greet 实现并自测通过'))
@@ -700,6 +714,9 @@ PY
   ptt bad ok-auto-decl tr-dup-phase-result
   ptt bad ok-auto-decl tr-answer-key-read
   ptt bad ok-auto-decl tr-evidence-read
+  ptt ok  ok-auto-decl tr-sandbox-evals-read
+  ptt ok  ok-auto-decl tr-sandbox-manifest-read
+  ptt bad ok-auto-decl tr-sandbox-routecases-read
   ptt bad ok-auto-decl tr-laundered-answer
   if python3 "$SKILL_DIR/scripts/make-transcript-manifest.py" "$PT_DIR/tr-genmanifest" --run-id run-selftest >/dev/null 2>&1; then
     ok "make-transcript-manifest generates manifest from runner markers"
@@ -726,6 +743,7 @@ PY
   ott bad row-orch3-n1  tr-orch3-count1
   ott bad row-orch3     tr-orch3-overlap
   ott bad row-orch3     tr-orch3-badprompt
+  ott ok  row-orch3     tr-orch3-goalphrase
   ott bad row-orch3     tr-orch3-subgit
   ott bad row-orch3     tr-orch3-nostart
   ott bad row-orch3     tr-orch3-copy
@@ -1069,10 +1087,14 @@ PYGR2
   else
     bad "PYTHONDONTWRITEBYTECODE not effective"
   fi
-  if [ "$PYC_PRE" -eq 0 ] && [ -e "$PYC" ]; then
-    bad "selftest wrote scripts/__pycache__ into the install dir (只读自检违规)"
+  if [ -e "$PYC" ]; then
+    if [ "$PYC_PRE" -eq 1 ]; then
+      bad "scripts/__pycache__ pre-existing in install dir (stale bytecode gets silently imported; delete it)"
+    else
+      bad "selftest wrote scripts/__pycache__ into the install dir (只读自检违规)"
+    fi
   else
-    ok "no __pycache__ written into install dir during selftest"
+    ok "install dir has no scripts/__pycache__ (neither pre-existing nor written)"
   fi
   echo
   echo "RESULT: PASS=$PASS FAIL=$FAIL"
@@ -1215,9 +1237,23 @@ def _walk_tool_uses(obj, out):
     elif isinstance(obj, list):
         for v in obj: _walk_tool_uses(v, out)
 # answer key (evals/route-cases.jsonl) + evidence chain (manifest/results/attestation):
-# reading any of these makes the run worthless as a cold test, whatever the answer says
-READ_DENY_RE = re.compile(r'(^|/)evals(/|$)|(^|/)route-cases\.jsonl$|(^|/)results-[^/]*\.jsonl$'
-                          r'|(^|/)manifest\.json$|(^|/)attestation\.json$')
+# reading any of these makes the run worthless as a cold test, whatever the answer says.
+# The bare "evals" directory-segment rule is exempted under the runner's own sandbox
+# CWD (hahaliu-eval-cwd-*): a fixture path that merely contains an evals segment is
+# sandbox content, not the answer key. Answer-key/evidence FILENAMES stay denied
+# everywhere (lexical check; the real skill evals dir never sits under a sandbox marker).
+READ_DENY_FILE_RE = re.compile(r'(^|/)route-cases\.jsonl$|(^|/)results-[^/]*\.jsonl$'
+                               r'|(^|/)manifest\.json$|(^|/)attestation\.json$')
+READ_DENY_EVALS_RE = re.compile(r'(^|/)evals(/|$)')
+SANDBOX_CWD_RE = re.compile(r'(^|/)hahaliu-eval-cwd-[^/]+/')
+ANSWER_KEY_FILE_RE = re.compile(r'(^|/)route-cases\.jsonl$')
+def read_denied(v):
+    if SANDBOX_CWD_RE.search(v):
+        # nothing protected lives under the runner's sandbox CWD: run-dir evidence
+        # (manifest/results/attestation) and the skill's evals dir are elsewhere.
+        # Only the answer-key filename itself stays denied as a double lock.
+        return bool(ANSWER_KEY_FILE_RE.search(v))
+    return bool(READ_DENY_FILE_RE.search(v) or READ_DENY_EVALS_RE.search(v))
 def _tool_uses(o):
     # traces come in two shapes: flat {"type":"tool_use"} lines and CLI assistant
     # messages carrying a content array — path auditing must see both
@@ -1300,7 +1336,7 @@ def tr_load(cid, ent):
             inp = c.get('input') if isinstance(c.get('input'), dict) else {}
             for k in ('file_path', 'path', 'pattern', 'glob', 'notebook_path'):
                 v = inp.get(k)
-                if isinstance(v, str) and READ_DENY_RE.search(v):
+                if isinstance(v, str) and read_denied(v):
                     return 'transcript(%s) 被测代理读取了答案/证据链文件(%s=%s)——冷测前提破坏,不可评分' % (cid, k, v)
     return objs
 ANSWER_KEYS = ('triggered', 'route', 'clarify', 'yield', 'main_chain', 'invocation',
@@ -1402,7 +1438,7 @@ def tr_audit(cid, ent, r, eff):
 #   synthesis check is a not-verbatim-copy proxy, not proof of true integration.
 ORCH_WRITE_TOOLS = {'Write', 'Edit', 'MultiEdit', 'NotebookEdit'}
 PF_PATTERNS = {
-    'goal': r'目标|交付|产出|完成标准|评审对象|你的轴|[Gg]oal|[Dd]eliverable',
+    'goal': r'目标|交付|产出|完成标准|评审对象|你的轴|返回结论|原样回传|回传输出|[Gg]oal|[Dd]eliverable',
     'scope': r'范围|边界|只读|仅(限|读|查)|不得修改|[Ss]cope|read[- ]?only',
     'acceptance': r'验收|通过标准|完成判定|[Aa]cceptance',
     'file_ownership': r'所有权|只(能|许|准|允许|负责)(修改|改动|编辑|写)|不得(修改|改动|编辑|触碰)|[Oo]wnership|only (modify|edit|touch)',
@@ -2242,6 +2278,13 @@ for f in routing.md workflows.md agents.md profile.md project-skill-template.md;
 done
 [ -x "$SKILL_DIR/scripts/task-delta.sh" ] && ok "scripts/task-delta.sh present & executable" || bad "scripts/task-delta.sh missing or not executable"
 grep -q 'task-delta.sh' "$SKILL_DIR/references/workflows.md" && ok "workflows.md references task-delta.sh" || bad "workflows.md missing task-delta.sh reference"
+# install-dir hygiene: a pre-existing __pycache__ is silently imported by a matching
+# interpreter even under PYTHONDONTWRITEBYTECODE (which only stops writes, not reads)
+if [ -e "$SKILL_DIR/scripts/__pycache__" ]; then
+  bad "scripts/__pycache__ present in install dir (stale bytecode gets silently imported; delete it)"
+else
+  ok "install dir has no scripts/__pycache__"
+fi
 
 echo "== 3. plugin resolution (installed_plugins.json + enabledPlugins; cache glob only as fallback) =="
 resolved=$(python3 - <<'PY'
@@ -2276,19 +2319,23 @@ def resolve(key, cache_glob):
 sp, sps, spe, spv = resolve('superpowers@claude-plugins-official', home + '/.claude/plugins/cache/claude-plugins-official/superpowers/*')
 mp, mps, mpe, mpv = resolve('mattpocock-skills@mattpocock', home + '/.claude/plugins/cache/mattpocock/mattpocock-skills/*')
 cx, cxs, cxe, cxv = resolve('codex@openai-codex', home + '/.claude/plugins/cache/openai-codex/codex/*')
+ec, ecs, ece, ecv = resolve('ecc@ecc', home + '/.claude/plugins/cache/ecc/ecc/*')
 print('sp_root=' + (sp + '/skills' if sp else ''));            print('sp_src=' + sps); print('sp_enabled=' + spe); print('sp_ver=' + spv)
 print('mp_root=' + (mp + '/skills/engineering' if mp else '')); print('mp_src=' + mps); print('mp_enabled=' + mpe); print('mp_ver=' + mpv)
 print('mp_prod=' + (mp + '/skills/productivity' if mp else ''))
 print('cx_rescue=' + (cx + '/agents/codex-rescue.md' if cx else '')); print('cx_src=' + cxs); print('cx_enabled=' + cxe); print('cx_ver=' + cxv)
+print('ec_root=' + (ec if ec else '')); print('ec_src=' + ecs); print('ec_enabled=' + ece); print('ec_ver=' + ecv)
 PY
 )
 getv(){ printf '%s\n' "$resolved" | sed -n "s/^$1=//p"; }
 sp_root=$(getv sp_root); sp_enabled=$(getv sp_enabled); sp_src=$(getv sp_src); sp_ver=$(getv sp_ver)
 mp_root=$(getv mp_root); mp_enabled=$(getv mp_enabled); mp_src=$(getv mp_src); mp_prod=$(getv mp_prod); mp_ver=$(getv mp_ver)
 cx_rescue=$(getv cx_rescue); cx_enabled=$(getv cx_enabled); cx_src=$(getv cx_src); cx_ver=$(getv cx_ver)
+ec_root=$(getv ec_root); ec_enabled=$(getv ec_enabled); ec_src=$(getv ec_src); ec_ver=$(getv ec_ver)
 [ "$sp_enabled" = "1" ] && ok "superpowers plugin enabled ($sp_src)" || warn "optional superpowers plugin not enabled (state=$sp_enabled); native fallback required"
 [ "$mp_enabled" = "1" ] && ok "mattpocock-skills plugin enabled ($mp_src)" || warn "optional mattpocock-skills plugin not enabled (state=$mp_enabled); native fallback required"
 [ "$cx_enabled" = "1" ] && ok "codex plugin enabled ($cx_src)" || warn "optional codex plugin not enabled (state=$cx_enabled); consultation lens unavailable"
+[ "$ec_enabled" = "1" ] && ok "ecc plugin enabled ($ec_src)" || warn "optional ecc plugin not enabled (state=$ec_enabled); native fallback required"
 for s in brainstorming writing-plans subagent-driven-development test-driven-development systematic-debugging verification-before-completion; do
   [ -n "$sp_root" ] && [ -f "$sp_root/$s/SKILL.md" ] && ok "superpowers:$s" || warn "optional superpowers:$s not found"
 done
@@ -2302,6 +2349,10 @@ for s in context-save context-restore retro review qa investigate autoplan offic
   [ -e "$HOME/.claude/skills/$s/SKILL.md" ] && ok "gstack:$s" || warn "optional gstack:$s not found"
 done
 [ -n "$cx_rescue" ] && [ -f "$cx_rescue" ] && ok "codex:codex-rescue agent def" || warn "optional codex:codex-rescue agent def not found"
+for s in verification-loop context-budget; do
+  [ -n "$ec_root" ] && [ -f "$ec_root/skills/$s/SKILL.md" ] && ok "ecc:$s" || warn "optional ecc:$s not found"
+done
+[ -n "$ec_root" ] && [ -f "$ec_root/commands/save-session.md" ] && ok "ecc:save-session (command)" || warn "optional ecc:save-session command not found"
 
 echo "== 4. drift checks =="
 # scripts with a shebang must carry the execute bit — docs invoke them directly
@@ -2412,6 +2463,7 @@ else
   ver_row mattpocock "$mp_ver"
   ver_row codex-plugin "$cx_ver"
   ver_row gstack "$gstack_ver"
+  ver_row ecc "$ec_ver"
   cc_ver=$(claude --version 2>/dev/null | head -1 | awk '{print $1}')
   ver_row claude-code "$cc_ver"
 fi
@@ -2502,7 +2554,7 @@ import json, os
 ROUTES = {'fast', 'focused', 'full', 'review'}
 CLARIFY = {'skip', 'brainstorming', 'grilling', 'office-hours', 'wayfinder'}
 AUTH = {'discuss-only', 'temp-files', 'local-artifacts', 'external-publish'}
-DEPS = {'core', 'superpowers', 'mattpocock', 'gstack', 'codex'}
+DEPS = {'core', 'superpowers', 'mattpocock', 'gstack', 'codex', 'ecc', 'claude-code'}
 errs, cases, seen = [], [], set()
 with open(os.environ['CASES']) as f:
     for i, ln in enumerate(f, 1):
@@ -2735,7 +2787,7 @@ for c in selab:
         print('用户消息: ' + c['prompt'])
         print('最后单独输出一行 JSON: {"auto":{"asked_user":false|true,"stop_reason":"规范标识"或null,"authorization_observed":{"commit":bool,"push":bool,"publish":bool,"egress":bool},"secondary_model":"答者模型名"或null,"capsule_location":"context|temp|scratch|none"},"first_step":"接管后第一步(50字内)","reason":"不超过50字"}。auto 各字段按覆盖层规则与用户消息如实填写(授权未提=false)。')
     else:
-        print('你是工具协议测试代理。只允许读取这一个文件: ' + rf + ';不得读取其他任何文件、不得执行任何命令。作答前必须先实际读取该文件,并以其现行内容为准——你的上下文里可能注入了该规则的旧版本快照,凭记忆或快照作答视为无效。前提: 已判定不触发 hahaliu-workflow,按该文件中与本请求相关的 bundled 协议直接处理用户请求。')
+        print('你是工具协议测试代理。只允许读取这一个文件: ' + rf + ';不得读取其他任何文件、不得执行任何命令。作答前必须先实际读取该文件,并以其现行内容为准——你的上下文里可能注入了该规则的旧版本快照,凭记忆或快照作答视为无效。前提: 已判定不触发 hahaliu-workflow,按该文件中与本请求相关的 bundled 协议直接处理用户请求。注意: 本测试环境不能创建新文件——协议若含 @文件 形式,仅在引用真实已存在的文件时可用;引用不存在的文件会被判无效,此时应改用协议允许的直接文本参数形式。')
         print('场景设定: ' + setting(c))
         print('用户消息: ' + c['prompt'])
         print('给出你将执行的调用(150字内),最后单独输出一行 JSON: {"invocation":"...","reason":"不超过50字"}。invocation 必须是你将执行的确切命令本身(可直接进 shell,不加叙述前缀、不用 echo 转述)。')
