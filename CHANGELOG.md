@@ -4,6 +4,9 @@ All notable changes are documented here. The project follows semantic versioning
 
 ## 0.1.0 - Unreleased
 
+- Add first-class performance-optimization and behavior-preserving refactoring
+  playbooks to both adapters, including focused/full escalation, repeatable evidence,
+  side-effect gates, and dedicated routing cases.
 - Fix executor step reference (Task Delta Adapter step 4, not 3) and add verification
   evidence to the auto-mode recovery capsule checklist.
 - Remove stale dispatch statistics from the agent roster; scope the MP

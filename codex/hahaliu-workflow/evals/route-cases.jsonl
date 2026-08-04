@@ -14,3 +14,7 @@
 {"id":"review-page","prompt":"只检查本地页面交互是否可用，用真实 Chrome，不修问题。","expect":{"trigger":true,"path":"review","main_chain":"chrome-qa"}}
 {"id":"review-release","prompt":"做一次发版准备度检查，但不要 commit、push 或部署。","expect":{"trigger":true,"path":"review","main_chain":"read-only-preflight"}}
 {"id":"goal-feature","prompt":"/goal 完成这个跨层功能，持续推进到验收通过，但不要提交 Git。","expect":{"trigger":true,"path":"full","main_chain":"goal-plan-slices"}}
+{"id":"focused-performance","prompt":"订单列表接口在明确负载下从 200ms 涨到 900ms，优化回目标值，但接口行为不能改变。","expect":{"trigger":true,"path":"focused","main_chain":"performance-baseline-profile-retest"}}
+{"id":"focused-refactor","prompt":"重构 utils/date.ts 的内部结构，对外 API、数据格式和行为都不能改变。","expect":{"trigger":true,"path":"focused","main_chain":"green-small-equivalent-steps"}}
+{"id":"full-performance","prompt":"首页首屏慢，前端、接口和数据库都可能有问题，指标还没定，也可以讨论裁功能。","expect":{"trigger":true,"path":"full","main_chain":"clarify-metric-contract-profile-slices"}}
+{"id":"split-refactor-feature","prompt":"重构 report 模块，顺便按现有 CSV 规则增加行为已明确的 Excel 导出，不要混在一个改动里。","expect":{"trigger":true,"path":"focused","main_chain":"separate-task-deltas"}}

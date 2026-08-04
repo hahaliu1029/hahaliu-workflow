@@ -15,12 +15,16 @@
 | 需求明确、只差实施 | 原生 plan + focused/full 执行 | 不为单会话小改创建规格工程 |
 | 根因未知的 bug | `superpowers:systematic-debugging` | 先复现和定位根因，不猜修复 |
 | 根因已知的 bug | focused + `superpowers:test-driven-development` | 先有能失败的回归证据，再最小修复 |
+| 性能优化 | focused：锁定指标与负载 → 可重复基线 → profile → 单变量修改 → 同条件复测 → 功能回归 | 指标未定、涉及产品取舍、跨前后端/存储/部署层或改公共契约时升 full；只分析不修改走 review |
+| 主动重构（行为保持） | focused：冻结外部行为 → characterization/GREEN 基线 → 小步等价变换 → 每步复跑 | 跨多个独立区域、修改公共 API/schema/持久化格式或架构迁移时升 full；行为变化拆成独立 feature/bug 任务 |
 | 只读代码审计 | review；必要时 `deep-review` 或独立子智能体 | 不修改，不把风格偏好当 bug，findings 按严重度与证据排序 |
 | 页面行为 QA | review 或 focused；直接用 `chrome:control-chrome` | 生产/未知环境中的提交、删除、支付、发信等动作先获授权 |
 | 发版准备度 | review，读取并应用检查清单 | `ship`、`land-and-deploy` 含 Git/发布副作用，不进入默认路径 |
 | 保存/恢复/复盘 | `context-save`、`context-restore`、`retro` | 这些 skill 可能写仓库外状态；先服从当前授权边界 |
 
 只在 skill 实际可用且任务匹配时调用。加载前读完整 `SKILL.md`，核对它的隐式写入、Git、浏览器、外部服务和用户确认协议。如果 leaf skill 与上层授权冲突，保留方法、禁用冲突动作，并在开工行说明适配；不要假称已完整执行该 skill。
+
+性能和重构场景不把 profiler、optimizer、架构检查或 reviewer 升格为第二条主链；它们只能提供诊断输入或评审镜头。诊断派发默认只读并显式禁止改文件；授权其实现时仍须先建立 Task Delta、限定文件所有权并按同一指标或行为不变量验收。完整调用若会压测外部系统、打开 GUI、写报告或改项目文档，必须先取得对应副作用授权。
 
 ## 需求成熟度
 
@@ -63,6 +67,8 @@ full 路径只选一条澄清链：
 
 - “把这处已定位错别字改掉，不必测试” → 不触发本 skill。
 - “修复登录偶发 500，原因未知” → focused，systematic-debugging → 回归测试 → 最小修复。
+- “把明确负载下的接口延迟优化回目标值，行为不变” → focused，基线 → profile → 同条件复测 → 功能回归。
+- “重构单模块但不改 API 和行为” → focused，GREEN/characterization → 小步等价变换 → 每步回归。
 - “给事件协议增加字段并兼容旧客户端” → full，先冻结 wire contract 和兼容语义。
 - “只审计这段权限代码，不要改” → review，安全镜头，声明未修改文件。
 - “检查本地页面交互是否真的可用” → review/focused，按是否授权修复区分，真实 Chrome 验证。

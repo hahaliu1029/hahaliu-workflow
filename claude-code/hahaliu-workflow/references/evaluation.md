@@ -25,7 +25,7 @@ scripts/finalize-results.py <运行目录> --grader <姓名>                 # g
 - **Phase B routing**: 读 SKILL.md 与 references 全文裁决路由(仅 expect 触发的用例)。
 - **Phase C protocol**: 只读 rules_file 指向的 bundled live reference 验证协议;相对路径按当前 skill 根解析,派发词强制实际读取该文件(凭快照作答无效)。scorer 语义校验 invocation: 拒 shell 控制符/命令替换/换行,head 锚定命令头,must 逐 token 精确,forbid 查子串;check=codex-consult 仅认当前 skill 内 codex-consult.sh 包装脚本+绝对路径头+单 prompt 参数(@文件走共享校验器 consult_path_check.py);check=auto-overlay 校验 auto 声明对象+first_step。
 
-纪律: gate 档每次修改本 skill 必跑;periodic 档跨模型定期跑;orch 执行档在改动派发/编排规则(agents.md、路由派发条款)或 claude-code 版本升级后跑(真实多代理运行,成本高,不并入 all)。
+纪律: gate 档每次修改本 skill 必跑;性能/重构 playbook 变更至少覆盖 gate-19、gate-20,升级与任务拆分边界定期覆盖 p-28、p-29;periodic 档跨模型定期跑;orch 执行档在改动派发/编排规则(agents.md、路由派发条款)或 claude-code 版本升级后跑(真实多代理运行,成本高,不并入 all)。
 
 ## 评分(--score)
 

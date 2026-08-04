@@ -2353,6 +2353,7 @@ for s in verification-loop context-budget; do
   [ -n "$ec_root" ] && [ -f "$ec_root/skills/$s/SKILL.md" ] && ok "ecc:$s" || warn "optional ecc:$s not found"
 done
 [ -n "$ec_root" ] && [ -f "$ec_root/commands/save-session.md" ] && ok "ecc:save-session (command)" || warn "optional ecc:save-session command not found"
+[ -n "$ec_root" ] && [ -f "$ec_root/agents/performance-optimizer.md" ] && ok "ecc:performance-optimizer (agent)" || warn "optional ecc:performance-optimizer agent not found; native profiling fallback required"
 
 echo "== 4. drift checks =="
 # scripts with a shebang must carry the execute bit — docs invoke them directly

@@ -53,7 +53,7 @@ Agent 的问题通常不是“不会写代码”，而是缺少稳定的执行�
 | 路径 | 适用情况 | 最小执行骨架 | 典型证据 |
 |---|---|---|---|
 | `fast` | 落点和语义明确的文档、文案或机械配置小改；不改变公共行为契约 | 定位 → 修改前快照 → 最小修改 → 定向验证 | 链接检查、格式检查、目标脚本或最小构建 |
-| `focused` | 根因或需求已明确的单链 bug、小功能、局部行为改动 | 最窄复现 → RED → GREEN → 单轴评审 → 受影响区域回归 | 修复前失败证据、修复后测试、目标 delta 评审 |
+| `focused` | 根因或需求已明确的单链 bug、小功能、局部行为改动、单模块性能优化或行为保持重构 | bug/功能走 RED→GREEN；性能走基线→profile→同条件复测；重构走 GREEN→小步等价变换 | 修复前后测试、性能前后指标、行为等价回归、目标 delta 评审 |
 | `full` | 新能力、模糊需求、公共契约、跨层修改或高风险边界 | 澄清 → 目标契约 → 计划/规格 → 垂直切片 → 多轴评审 → 验收重放 | 契约测试、定向测试、类型检查/构建、真实行为证据 |
 | `review` | 用户只要求审计、诊断、评估或 QA，不授权修改 | 只读取证 → 分轴 findings → 标明未验证范围 → 声明未修改 | 文件与调用链证据、复现结果、运行时或页面观察 |
 
@@ -118,6 +118,8 @@ Task Delta 的处理方式是：
 
 - `fast`：只做能追溯到请求的局部修改，不引入额外抽象。
 - `focused`：先让最窄复现或回归检查失败，再实现最小修复并转绿。
+- 性能优化：修改前建立可重复基线，profile 后一次验证一个假设，并在相同环境、输入和采样方法下复测。
+- 行为保持重构：先取得 GREEN/characterization 基线，再做小步等价变换并逐步复跑；功能变化必须拆成独立任务。
 - `full`：先冻结共享契约，再按可独立验证的垂直切片推进。
 - `review`：保持只读，findings 按严重度、证据和影响排序，不把偏好写成 bug。
 
@@ -186,6 +188,26 @@ Task Delta 的处理方式是：
 完成证据：契约测试、两端构建、旧版本兼容重放
 ```
 
+### 单模块性能优化
+
+```text
+请求：把订单列表接口从 900ms 优化回目标阈值，接口行为不能改变。
+路径：focused
+主链：可重复基线 → profile 定位 → 单变量修改 → 同条件复测
+门禁：生产/外部系统副作用授权、功能回归、任务专属 delta
+完成证据：修改前后同口径数据、波动范围、正确性回归
+```
+
+### 行为保持重构
+
+```text
+请求：重构单模块内部结构，但不改变公共 API、数据格式或外部行为。
+路径：focused
+主链：GREEN/characterization 基线 → 小步等价变换 → 每步最窄回归
+门禁：结构改动与功能改动分离、Standards review
+完成证据：行为不变量、受影响模块测试、类型检查或构建
+```
+
 ### 只读安全审计
 
 ```text
@@ -205,7 +227,7 @@ Task Delta 的处理方式是：
 | Superpowers | 两端，按宿主实际可用能力 | systematic debugging、TDD、brainstorming、writing plans、完成前验证 | 使用宿主原生能力执行复现、根因定位、RED/GREEN、计划和验证 |
 | Matt Pocock Skills | Claude Code | grilling、`to-spec`、`to-tickets`、research、domain modeling、prototype | 使用目标契约、原生 plan 和垂直切片完成较轻量的等价流程 |
 | gstack | 两端，按宿主实际可用能力 | office-hours、context save/restore、retro、QA/review/autoplan 方法 | 在当前对话中完成需求判断、检查清单、总结和复盘，不假装调用缺失 skill |
-| ECC reviewers | Claude Code | 额外验证或评审能力 | 使用主上下文或 fresh-context 子智能体完成必要评审 |
+| ECC reviewers | Claude Code | 额外验证、评审或性能诊断能力 | 使用宿主原生 profiling、主上下文或 fresh-context 子智能体完成必要检查 |
 | Codex CLI | Claude Code | 只读第二意见、架构挑战或救援通道 | 跳过该镜头并如实报告，不伪造跨模型意见 |
 
 缺少可选集成时，validator 应报告 WARN 或跳过相关漂移检查，而不是把它们误判为核心 skill 不可用。真实行为仍应通过无插件 fresh-context 冷测验证。

@@ -1,6 +1,6 @@
 ---
 name: hahaliu-workflow
-description: 工程工作流的裁决与编排层。前置：项目级 auto-skill 已覆盖当前任务时,本 skill 不触发、直接让位。Use when 非平凡任务需要在可用的原生能力、gstack、superpowers、mattpocock、ecc 之间选唯一主链,定 fast/focused/full/review 路径,安排子代理与模型档位,或用户说「开工/收尾/复盘/怎么安排/用哪个 skill」时。以下任务无论多小、需求多明确都触发：修 bug、改行为/文案/配置、加功能、代码审计、QA、发版检查、需求澄清(验证点子值不值得做、压测方案、一句话需求、多方案选型)——都需要本层定档与交付纪律。仅两类不触发：①位置已知的拼写/标点级修正——需定位、需测试、或改行为/文案/配置的不属此类;②用户已点名唯一的 skill/工具作为执行路径(含只问如何调用 Codex)——点名多个工具或需裁决工具间冲突属于选型,照常触发。
+description: 工程工作流的裁决与编排层。前置：项目级 auto-skill 已覆盖当前任务时,本 skill 不触发、直接让位。Use when 非平凡任务需要在可用的原生能力、gstack、superpowers、mattpocock、ecc 之间选唯一主链,定 fast/focused/full/review 路径,安排子代理与模型档位,或用户说「开工/收尾/复盘/怎么安排/用哪个 skill」时。以下任务无论多小、需求多明确都触发：修 bug、改行为/文案/配置、加功能、性能优化、主动重构、代码审计、QA、发版检查、需求澄清(验证点子值不值得做、压测方案、一句话需求、多方案选型)——都需要本层定档与交付纪律。仅两类不触发：①位置已知的拼写/标点级修正——需定位、需测试、或改行为/文案/配置的不属此类;②用户已点名唯一的 skill/工具作为执行路径(含只问如何调用 Codex)——点名多个工具或需裁决工具间冲突属于选型,照常触发。
 ---
 
 # hahaliu-workflow — 工程工作流裁决层
@@ -23,7 +23,7 @@ description: 工程工作流的裁决与编排层。前置：项目级 auto-skil
 | 路径 | 适用 | 骨架 |
 |---|---|---|
 | fast | 文档/文案/机械配置/明确不改行为契约的局部小改 | 定位→最小修改→定向验证 |
-| focused | 根因或需求已明的单链 bug、小功能 | (根因未知先 systematic-debugging)→TDD→review→验证 |
+| focused | 根因或需求已明的单链 bug、小功能、单模块性能优化或行为保持重构 | bug/功能走 systematic-debugging/TDD;性能/重构分别走 Playbook H/I 专用循环→review→验证 |
 | full | 新能力/模糊需求/公共契约/跨层/高风险边界 | 澄清(目标定位+成熟度门禁)→计划或 spec+tickets(大型任务加 Spec 收敛门禁)→逐票 TDD→review+镜头→显式验证门禁 |
 | review | 只审计不修改 | 只读取证→分轴结论→标明未验证范围 |
 
@@ -60,6 +60,8 @@ focused/full 路径在开工行之后立一份**目标契约**(数行即可,不�
 | 根因未知 debug | superpowers:systematic-debugging |
 | TDD | superpowers:test-driven-development |
 | review | 无 spec 单轴 Standards;有 spec 双轴(MP);高风险+codex 镜头 |
+| 性能优化 | focused 起步;完成证据=可重复的修改前后指标(Playbook H,升级条件见 routing.md) |
+| 主动重构 | focused 起步;完成证据=外部行为不变(Playbook I,升级条件见 routing.md) |
 | session 存取 | gstack context-save / context-restore |
 | 复盘 | gstack retro |
 | 调研 | MP research |

@@ -54,6 +54,12 @@ SAFE_GIT_WORDING = re.compile(
 )
 
 VALID_PATHS = {"fast", "focused", "full", "review", "yield", "none"}
+REQUIRED_ROUTE_CASES = {
+    "focused-performance",
+    "focused-refactor",
+    "full-performance",
+    "split-refactor-feature",
+}
 
 
 class Report:
@@ -152,7 +158,17 @@ def validate_common(root: Path, report: Report) -> tuple[str, str, dict[str, str
 
 def validate_global(root: Path, report: Report) -> None:
     text, body, _ = validate_common(root, report)
-    for token in ("fast", "focused", "full", "review", "唯一主链", "Task Delta", "当次"):
+    for token in (
+        "fast",
+        "focused",
+        "full",
+        "review",
+        "唯一主链",
+        "Task Delta",
+        "当次",
+        "性能优化",
+        "行为保持重构",
+    ):
         report.check(token in body, f"SKILL.md declares core invariant: {token}")
 
     reference_dir = root / "references"
@@ -197,6 +213,10 @@ def validate_global(root: Path, report: Report) -> None:
             if isinstance(expected, dict):
                 report.check(expected.get("path", "none") in VALID_PATHS, f"route case {case_id} has valid path")
         report.check(rows >= 12, "route cases cover at least 12 scenarios")
+        report.check(
+            REQUIRED_ROUTE_CASES <= seen,
+            "route cases cover performance and behavior-preserving refactoring",
+        )
 
 
 def validate_project(root: Path, report: Report) -> None:

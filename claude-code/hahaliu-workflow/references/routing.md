@@ -27,6 +27,8 @@ using-superpowers 发现技能 → 项目 auto-skill 决定本项目怎么做 �
 | 规划 | 澄清完成(或需求本就明确)→writing-plans(fast 可不写正式 plan) | 跨会话/需持久规格与票→MP to-spec+to-tickets;grill 后不默认续任何链,先过「第二次门禁」(见下)再定出口;高风险架构或点名要多视角→gstack autoplan / plan-*-review |
 | debug(根因未知) | superpowers:systematic-debugging | 诊断需形成可交接的持久工件→MP diagnosing-bugs(主链替代,不叠加);线上事故/运行态调查且确需 freeze/learnings→gstack investigate |
 | debug(根因已知) | focused 路径直接修 | 仍必须先复现、后验证 |
+| 性能优化 | focused: 锁定指标与负载→建立基线→profile 定位→单变量最小改动→同条件复测→功能回归(Playbook H) | 指标未定、涉及产品取舍、跨前后端/存储/部署层、或改公共契约/架构→full;只要求分析报告不改代码→review |
+| 主动重构(行为保持) | focused: 冻结外部行为→characterization/GREEN 基线→小步等价变换→每步复跑→delta review(Playbook I) | 跨多个独立区域、改公共 API/schema/持久化格式、架构迁移或无法单会话闭环→full;重构中需要改行为→拆成独立 feature/bug 任务,不混入本 delta |
 | TDD | superpowers:test-driven-development(先 RED 后 GREEN) | 测试落点(seam)拿不准时参考 MP tdd 的 seam 规则;文档/机械配置不伪造 TDD |
 | review(无正式 spec) | 单轴 Standards/correctness 评审,只看任务 delta | — |
 | review(有 spec/ticket 且非平凡) | MP code-review 双轴: Standards 轴+Spec 轴上下文隔离并行 | 高风险再加 codex challenge 镜头 |
@@ -37,6 +39,8 @@ using-superpowers 发现技能 → 项目 auto-skill 决定本项目怎么做 �
 | session 保存/恢复 | gstack context-save / context-restore(单轨) | ecc save-session 仅作 fallback,不常规并用 |
 | 每周复盘 | gstack retro | 跨项目汇总用 retro global |
 | 完成声明 | 恒守验证原则(分级见 SKILL.md) | 需要全量矩阵才用 ecc verification-loop,不每次叠加 |
+
+性能/重构场景不把 MP improve-codebase-architecture、ecc performance-optimizer 或任何 reviewer 升格为主链,只作诊断输入或评审镜头。两者都不是天然只读: ecc performance-optimizer 可用时,诊断派发词须显式限定只读、禁改文件;授权其实现时先过 Task Delta 与文件所有权。MP improve-codebase-architecture 完整调用会写临时报告、打开 GUI、进入交互并可能更新项目文档,默认只读取并应用其架构评审准则;完整调用需另获对应副作用授权。集成不存在时使用 Claude Code 原生 profiling、实现与评审能力,不得伪装已调用。
 
 ## 用户目标定位(澄清的第 0 步,先于成熟度定档)
 

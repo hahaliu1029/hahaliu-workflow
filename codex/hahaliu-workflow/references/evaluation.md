@@ -32,7 +32,7 @@ Use $hahaliu-workflow at <skill-path> to solve <realistic task in isolated fixtu
 - 是否实际运行验证，并把结果与完成声明绑定。
 - 是否只改任务范围内文件；review 场景是否零修改。
 
-`evals/route-cases.jsonl` 提供覆盖面，不是自动行为证明。优先冷测本次改动影响到的用例；发布为稳定版本前至少覆盖 trigger/yield、fast、focused、full、review、项目 auto-skill precedence、页面 Chrome 和未授权 Git 副作用。
+`evals/route-cases.jsonl` 提供覆盖面，不是自动行为证明。优先冷测本次改动影响到的用例；性能/重构规则变更至少重跑 focused-performance、focused-refactor、full-performance 和 split-refactor-feature。发布为稳定版本前至少覆盖 trigger/yield、fast、focused、full、review、项目 auto-skill precedence、页面 Chrome 和未授权 Git 副作用。
 
 ## 结果分级
 
