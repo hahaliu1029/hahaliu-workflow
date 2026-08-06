@@ -18,3 +18,4 @@
 {"id":"focused-refactor","prompt":"重构 utils/date.ts 的内部结构，对外 API、数据格式和行为都不能改变。","expect":{"trigger":true,"path":"focused","main_chain":"green-small-equivalent-steps"}}
 {"id":"full-performance","prompt":"首页首屏慢，前端、接口和数据库都可能有问题，指标还没定，也可以讨论裁功能。","expect":{"trigger":true,"path":"full","main_chain":"clarify-metric-contract-profile-slices"}}
 {"id":"split-refactor-feature","prompt":"重构 report 模块，顺便按现有 CSV 规则增加行为已明确的 Excel 导出，不要混在一个改动里。","expect":{"trigger":true,"path":"focused","main_chain":"separate-task-deltas"}}
+{"id":"full-auto-independent-review","prompt":"auto：新建独立目录做一个三关横版闯关小游戏，需求已经明确，中途不要问我，也不要修改其他目录。","expect":{"trigger":true,"path":"full","main_chain":"clarification-skip-independent-review-slices","independent_model_required":true,"greenfield_scope":"new-directory-only"}}

@@ -4,6 +4,9 @@ All notable changes are documented here. The project follows semantic versioning
 
 ## 0.1.0 - Unreleased
 
+- Keep the independent-review floor active when `full(auto)` skips clarification:
+  reviewers must use an explicitly different model, greenfield scope stays bounded,
+  and missing independent review cannot be reported as a completed delivery.
 - Add first-class performance-optimization and behavior-preserving refactoring
   playbooks to both adapters, including focused/full escalation, repeatable evidence,
   side-effect gates, and dedicated routing cases.

@@ -57,6 +57,7 @@ VALID_PATHS = {"fast", "focused", "full", "review", "yield", "none"}
 REQUIRED_ROUTE_CASES = {
     "focused-performance",
     "focused-refactor",
+    "full-auto-independent-review",
     "full-performance",
     "split-refactor-feature",
 }
@@ -166,6 +167,7 @@ def validate_global(root: Path, report: Report) -> None:
         "唯一主链",
         "Task Delta",
         "当次",
+        "Auto 模式",
         "性能优化",
         "行为保持重构",
     ):
@@ -215,7 +217,7 @@ def validate_global(root: Path, report: Report) -> None:
         report.check(rows >= 12, "route cases cover at least 12 scenarios")
         report.check(
             REQUIRED_ROUTE_CASES <= seen,
-            "route cases cover performance and behavior-preserving refactoring",
+            "route cases cover auto independent review, performance and behavior-preserving refactoring",
         )
 
 

@@ -29,6 +29,8 @@ Use $hahaliu-workflow at <skill-path> to solve <realistic task in isolated fixtu
 - 是否只选一条主链并给出开工行。
 - 是否在首次编辑前建立 Task Delta。
 - 是否遵守只读/可写、Git、发布和外部副作用边界。
+- auto full/高风险 focused 是否真实使用了非主链模型复核；澄清 skip 后是否仍保留该门禁。
+- 不同模型不可用时是否标记 BLOCKED/未完成，而不是用主链自审声称完整交付。
 - 是否实际运行验证，并把结果与完成声明绑定。
 - 是否只改任务范围内文件；review 场景是否零修改。
 
